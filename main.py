@@ -520,12 +520,17 @@ musicAlbumsClassification = True
 # 配置项名称
 cfgName = "config.json"
 
-# 初次使用即保存配置项
-if not os.path.exists(cfgName):
-    system = sys.platform
-    # if system == 'win32':  # 尝试兼容windows系统
+
+##
+def initEnv():
+    global download_home
     download_home = os.getcwd() + '/music/'  # 自动定位到执行目录，兼容Windows默认配置。
     saveConfigs()
+
+
+# 初次使用即保存配置项
+if not os.path.exists(cfgName):
+    initEnv()
 
 # read default config
 with open(cfgName, encoding='utf-8') as cfg:
@@ -536,5 +541,9 @@ with open(cfgName, encoding='utf-8') as cfg:
     searchKey = params['searchKey']
     dualThread = int(params['dualThread'])
     musicAlbumsClassification = params['musicAlbumsClassification']
+
+    # 删除了本地目录后缓存中的本地目录还会去读这个目录 不存在导致FileNotFoundError: [Errno 2] No such file or directory错误
+    if not os.path.exists(download_home):
+        initEnv()
 
 _main(searchKey)
