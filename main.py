@@ -198,16 +198,17 @@ def downSingle(it):
     songmid = it['songmid']
     file = getMusicFileName(it['prefix'], it['mid'], it['extra'])
     link = getDownloadLink(file)
+    musicFileInfo = f"{it['singer']} - {it['title']} [{it['notice']}] {round(int(it['size'])/1024/1024,2)}MB - {file}"
     if link.find('qqmusic.qq.com') == -1:
         if link.find('"title":"Not Found"') != -1:
             # 开始第二次解析
             vkey = parseSectionByNotFound(file, songmid)
             if vkey == '':
-                print(f"找不到资源文件! 解析歌曲下载地址失败！{log}")
+                print(f"找不到资源文件! 解析歌曲下载地址失败！{musicFileInfo}")
                 return False
             link = f'http://ws.stream.qqmusic.qq.com/{vkey}&fromtag=140'
         else:
-            print(f"无法加载资源文件！解析歌曲下载地址失败！{log}")
+            print(f"无法加载资源文件！解析歌曲下载地址失败！{musicFileInfo}")
             return False
 
     # prepare
@@ -260,8 +261,7 @@ def downSingle(it):
         else:
             print(
                 f"本地文件尺寸不符: {os.path.getsize(localFile)}/{int(it['size'])},开始覆盖下载 [{mShower}].")
-    log = f"{it['singer']} - {it['title']} [{it['notice']}] {round(int(it['size'])/1024/1024,2)}MB - {file}"
-    print(f'正在下载 | {it["album"]} / {log}')
+    print(f'正在下载 | {it["album"]} / {musicFileInfo}')
     f = sess.get(link)
     with open(localFile, 'wb') as code:
         code.write(f.content)
@@ -521,7 +521,7 @@ musicAlbumsClassification = True
 cfgName = "config.json"
 
 
-##
+# 第一次使用初始化环境信息 可以删除config.json，会自动创建初始化。
 def initEnv():
     global download_home
     download_home = os.getcwd() + '/music/'  # 自动定位到执行目录，兼容Windows默认配置。
@@ -542,7 +542,7 @@ with open(cfgName, encoding='utf-8') as cfg:
     dualThread = int(params['dualThread'])
     musicAlbumsClassification = params['musicAlbumsClassification']
 
-    # 删除了本地目录后缓存中的本地目录还会去读这个目录 不存在导致FileNotFoundError: [Errno 2] No such file or directory错误
+    # 删除了本地目录后缓存中的本地目录后，下次执行代码则还会去读这个目录 不存在导致FileNotFoundError: [Errno 2] No such file or directory错误
     if not os.path.exists(download_home):
         initEnv()
 
