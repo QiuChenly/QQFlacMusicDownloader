@@ -272,7 +272,7 @@ def downSingle(it):
 def fixWindowsFileName2Normal(texts=''):
     """
     修正windows的符号问题
-    “?”、“、”、“╲”、“/”、“*”、““”、“”“、“<”、“>”、“|” " "
+    “?”、“、”、“╲”、“/”、“*”、““”、“”“、“<”、“>”、“|” " " ":"
 
     参数:
         texts (str, optional): 通常类型字符串. 默认值为 ''.
@@ -281,14 +281,14 @@ def fixWindowsFileName2Normal(texts=''):
         str: 替换字符后的结果
     """
     targetChars = {
-        '|': ':',
+        '|': ',',
         '/': ' - ',
         '╲': ' - ',
         '、': '·',
         '“': '"',
         '”': '"',
         '*': 'x',
-        '?': '？',
+        '?': '？',  # fix for sample: Justin Bieber - What do you mean ? (Remix)
         '<': '《',
         '>': '》',
         ' ': '',
