@@ -272,7 +272,7 @@ def downSingle(it):
 def fixWindowsFileName2Normal(texts=''):
     """
     修正windows的符号问题
-    “?”、“、”、“╲”、“/”、“*”、““”、“”“、“<”、“>”、“|”
+    “?”、“、”、“╲”、“/”、“*”、““”、“”“、“<”、“>”、“|” " "
 
     参数:
         texts (str, optional): 通常类型字符串. 默认值为 ''.
@@ -290,7 +290,8 @@ def fixWindowsFileName2Normal(texts=''):
         '*': 'x',
         '?': '？',
         '<': '《',
-        '>': '》'
+        '>': '》',
+        ' ': '',
     }
     for suffix in targetChars:
         fix = targetChars[suffix]
