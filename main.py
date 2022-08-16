@@ -295,7 +295,7 @@ def fixWindowsFileName2Normal(texts=''):
     }
     for suffix in targetChars:
         fix = targetChars[suffix]
-        texts.replace(suffix, fix)
+        texts = texts.replace(suffix, fix)
     return texts
 
 
