@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import base64
 import math
-import sys
 import requests
 import os
 import json
@@ -270,7 +269,46 @@ def downSingle(it):
     return True
 
 
+def fixWindowsFileName2Normal(texts=''):
+    """
+    修正windows的符号问题
+    “?”、“、”、“╲”、“/”、“*”、““”、“”“、“<”、“>”、“|”
+
+    参数:
+        texts (str, optional): 通常类型字符串. 默认值为 ''.
+
+    返回值:
+        str: 替换字符后的结果
+    """
+    targetChars = {
+        '|': ':',
+        '/': ' - ',
+        '╲': ' - ',
+        '、': '·',
+        '“': '"',
+        '”': '"',
+        '*': 'x',
+        '?': '？',
+        '<': '《',
+        '>': '》'
+    }
+    for suffix in targetChars:
+        fix = targetChars[suffix]
+        texts.replace(suffix, fix)
+    return texts
+
+
 def parseList(list, target):
+    """
+    处理音乐列表
+
+    Args:
+        list (Array<T>): 歌曲列表
+        target (str): 搜索的歌手名称,用于是否使用歌手名匹配歌曲歌手信息
+
+    Returns:
+        lists, songs: 处理过的数据数组
+    """
     add = 1
     span = "  "
     songs = []
@@ -301,7 +339,7 @@ def parseList(list, target):
             fsize = int(id['size_hires'])
         elif int(id['size_flac']) != 0:
             isEnc = False  # 这句代码是逆向出来的 暂时无效
-            if(isEnc):
+            if (isEnc):
                 code = "F0M0"
                 format = "mflac"
             else:
@@ -316,7 +354,7 @@ def parseList(list, target):
             fsize = int(id['size_320mp3'])
         elif int(id['size_192ogg']) != 0:
             isEnc = False  # 这句代码是逆向出来的 暂时无效
-            if(isEnc):
+            if (isEnc):
                 code = "O6M0"
                 format = "mgg"
             else:
@@ -326,7 +364,7 @@ def parseList(list, target):
             fsize = int(id['size_192ogg'])
         elif int(id['size_128mp3']) != 0:
             isEnc = False  # 这句代码是逆向出来的 暂时无效
-            if(isEnc):
+            if (isEnc):
                 code = "O4M0"
                 format = "mgg"
             else:
@@ -350,9 +388,9 @@ def parseList(list, target):
             'mid': mid,
             'songmid': i['mid'],
             'size': fsize,
-            'title': f'{i["title"]}',
-            'singer': f'{singer}',
-            'album': albumName})
+            'title': fixWindowsFileName2Normal(f'{i["title"]}'),
+            'singer': fixWindowsFileName2Normal(f'{singer}'),
+            'album': fixWindowsFileName2Normal(albumName)})
 
         time_publish = i["time_public"]
         if time_publish == '':
@@ -432,6 +470,7 @@ c [{ '已开启' if musicAlbumsClassification else '已关闭' }] 切换模式:�
                     f"请输入新的{'搜索关键词' if inputKey == 's' else '下载主目录'}:", end='')
                 if inputKey == 'h':
                     download_home = input()
+                    download_home = download_home.replace(' ', '')
                     if not download_home.endswith('/'):
                         download_home += '/'
                 else:
