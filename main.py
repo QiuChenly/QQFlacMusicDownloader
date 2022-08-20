@@ -299,9 +299,22 @@ def fixWindowsFileName2Normal(texts=''):
     return texts
 
 
+def needFilter(fileName=''):
+    """
+    检查是否需要过滤本首歌曲
+
+    """
+    global filterList
+    for it in filterList:
+        if fileName.upper().find(it.upper()) != -1:
+            return True
+    return False
+
+
 def parseList(list, target):
     """
     处理音乐列表
+    如果需要屏蔽显示某些类型的歌曲，可以在这个函数里末尾处理
 
     Args:
         list (Array<T>): 歌曲列表
@@ -382,6 +395,16 @@ def parseList(list, target):
         albumName = str(i["album"]['title']).strip(" ")
         if albumName == '':
             albumName = "未分类专辑"
+
+        # 开始检查歌曲过滤显示
+        # 第三方修改歌曲可以在这里对歌曲做二次处理
+        flacName = fixWindowsFileName2Normal(f'{i["title"]}')
+
+        if needFilter(flacName):
+            # print(f'过滤歌曲: {flacName}')
+            continue
+
+        # 通过检查 将歌曲放入歌曲池展示给用户 未通过检查的歌曲将被放弃并且不再显示
         songs.append({
             'prefix': code,
             'extra': format,
@@ -389,7 +412,7 @@ def parseList(list, target):
             'mid': mid,
             'songmid': i['mid'],
             'size': fsize,
-            'title': fixWindowsFileName2Normal(f'{i["title"]}'),
+            'title': flacName,
             'singer': fixWindowsFileName2Normal(f'{singer}'),
             'album': fixWindowsFileName2Normal(albumName)})
 
@@ -404,6 +427,9 @@ def parseList(list, target):
 
 
 def downAll(target, size):
+    """
+    一键下载所有搜索结果
+    """
     num = math.ceil(size/100)
     result = []
     for i in range(1, num + 1):
@@ -414,6 +440,9 @@ def downAll(target, size):
 
 
 def _main(target=""):
+    """
+    主函数 不建议随意修改 请在上方函数修改
+    """
     global mkey_, mqq_, download_home, dualThread, searchKey, onlyShowSingerSelfSongs, musicAlbumsClassification
 
     # fix create directory files error(if not exists)
@@ -525,48 +554,75 @@ c [{ '已开启' if musicAlbumsClassification else '已关闭' }] 切换模式:�
 
 
 def saveConfigs():
+    """
+    保存设置
+    """
     cfg = json.dumps({
         'dualThread': dualThread,
         'download_home': download_home,
         'searchKey': searchKey,
         'onlyShowSingerSelfSongs': onlyShowSingerSelfSongs,
-        'musicAlbumsClassification': musicAlbumsClassification
+        'musicAlbumsClassification': musicAlbumsClassification,
+        'filterList': filterList
     }, ensure_ascii=False).encode()
     with open(cfgName, "wb") as cf:
         cf.write(cfg)
         cf.flush()
 
 
-# 下载的文件要保存到哪里
-# /Volumes/data类似于windows上的C:/
-# /music/就是你自定义的文件夹名称 随便指定 会自动创建
-download_home = "/Volumes/data/music/"
+download_home = ""
+"""
+下载的文件要保存到哪里(目录) /Volumes/data类似于windows上的C:/
+    
+就是你自定义的文件夹名称 随便指定 会自动创建
 
-# 多线程下载 线程数量
-dualThread = 16
+本参数已自动处理 不建议修改
+"""
 
-# 默认搜索Key
+dualThread = 5
+"""
+多线程下载 线程数量
+#####  如果你的宽带>=1000Mbps 可以适当调整至64
+#####  100Mbps左右的小宽带不建议调高 会导致带宽不足连接失败
+"""
+
+
 searchKey = "周杰伦"
+"""
+默认搜索Key
+"""
 
-# 搜索歌曲名称时是否强制指定歌手和搜索key一致，用于过滤非本歌手的歌曲，如果是false 则显示所有搜索结果 如果你只想搜索某个歌手则可以开启本选项 默认关闭
-# 如何理解本选项？ 搜索结果是按照[时间] [歌手] - [歌名]排序的，你搜索的关键词searchKey严格匹配[歌手]选项,不是你搜索的歌手的歌则会强制过滤显示，如果你需要切换显示模式则输入 o 即可显示搜索未过滤结果
 onlyShowSingerSelfSongs = False
+"""
+###  搜索歌曲名称时是否强制指定歌手和搜索key一致，用于过滤非本歌手的歌曲
+如果是False,则显示所有搜索结果 如果你只想搜索某个歌手则可以开启本选项 默认关闭
+#### 如何理解本选项？ 搜索结果是按照[时间] [歌手] - [歌名]排序的，你搜索的关键词searchKey严格匹配[歌手]选项,不是你搜索的歌手的歌则会强制过滤显示，如果你需要切换显示模式则输入 o 即可显示搜索未过滤结果
+"""
 
-
-# 音乐文件自动归档到单独的专辑文件夹中,如果关闭那么就不会生成专辑目录,默认自动按照专辑名称分类归档音乐文件
 musicAlbumsClassification = True
+"""
+音乐文件自动归档到单独的专辑文件夹中,如果关闭那么就不会生成专辑目录,默认自动按照专辑名称分类归档音乐文件
+"""
 
-
-# 配置项名称
 cfgName = "config.json"
+"""
+配置项名称
+"""
 
 
-# 第一次使用初始化环境信息 可以删除config.json，会自动创建初始化。
 def initEnv():
+    """
+    第一次使用初始化环境信息 可以删除config.json，会自动创建初始化。
+    """
     global download_home
     download_home = os.getcwd() + '/music/'  # 自动定位到执行目录，兼容Windows默认配置。
     saveConfigs()
 
+
+filterList = ['DJ', 'Live', '伴奏', '版)', '慢四']
+"""
+关键词过滤数组 注意 英文字母自动upper到大写比对 所以只需要写一次即可 如 DJ Dj 只需要写 ‘DJ’即可 自动到大写比对 
+"""
 
 # 初次使用即保存配置项
 if not os.path.exists(cfgName):
@@ -581,8 +637,9 @@ with open(cfgName, encoding='utf-8') as cfg:
     searchKey = params['searchKey']
     dualThread = int(params['dualThread'])
     musicAlbumsClassification = params['musicAlbumsClassification']
+    filterList = params['filterList']
 
-    # 删除了本地目录后缓存中的本地目录后，下次执行代码则还会去读这个目录 不存在导致FileNotFoundError: [Errno 2] No such file or directory错误
+    # 修复 删除了本地目录后缓存中的本地目录后，下次执行代码则还会去读这个目录 不存在导致FileNotFoundError: [Errno 2] No such file or directory错误
     if not os.path.exists(download_home):
         initEnv()
 
